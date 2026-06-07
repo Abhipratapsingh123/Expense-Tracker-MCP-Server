@@ -38,7 +38,7 @@ init_db()
 
 # tool to add expense
 @mcp.tool()
-async def add_expense(date, amount, category, subcategory="", note=""):  
+async def add_expense(date, amount, category, subcategory="", note=""):
     '''Add a new expense entry to the database.'''
     try:
         async with aiosqlite.connect(DB_PATH) as c:
@@ -99,6 +99,21 @@ async def summarize(start_date, end_date, category=None):
             return [dict(zip(cols, r)) for r in await cur.fetchall()]
     except Exception as e:
         return {"status": "error", "message": f"Error summarizing expenses: {str(e)}"}
+    
+
+# tool to delete an expense by ID
+@mcp.tool()
+async def delete_expense(expense_id):
+    '''Delete an expense entry by its ID.'''
+    try:
+        async with aiosqlite.connect(DB_PATH) as c:
+            await c.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+            await c.commit()
+            return {"status": "success", "message": f"Expense with ID {expense_id} deleted successfully"}
+    except Exception as e:
+        return {"status": "error", "message": f"Error deleting expense: {str(e)}"}
+
+
 
 # resource to get categories
 @mcp.resource("expense:///categories", mime_type="application/json")

@@ -102,17 +102,39 @@ async def summarize(start_date, end_date, category=None):
     
 
 # tool to delete an expense by ID
+
 @mcp.tool()
-async def delete_expense(expense_id):
-    '''Delete an expense entry by its ID.'''
+async def delete_expense(expense_id: int):
+    """
+    Delete an expense entry by its ID.
+    """
+
     try:
         async with aiosqlite.connect(DB_PATH) as c:
-            await c.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
-            await c.commit()
-            return {"status": "success", "message": f"Expense with ID {expense_id} deleted successfully"}
-    except Exception as e:
-        return {"status": "error", "message": f"Error deleting expense: {str(e)}"}
 
+            cur = await c.execute(
+                "DELETE FROM expenses WHERE id = ?",
+                (expense_id,)
+            )
+
+            await c.commit()
+
+            if cur.rowcount == 0:
+                return {
+                    "status": "error",
+                    "message": f"No expense found with ID {expense_id}"
+                }
+
+            return {
+                "status": "success",
+                "message": f"Expense with ID {expense_id} deleted successfully"
+            }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error deleting expense: {str(e)}"
+        }
 
 
 # resource to get categories
